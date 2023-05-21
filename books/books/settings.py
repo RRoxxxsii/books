@@ -37,9 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'store.apps.StoreConfig',
     'rest_framework',
     'django_filters',
+    'social_django',
+
+    'store.apps.StoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +59,7 @@ ROOT_URLCONF = 'books.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -108,6 +110,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.github.GithubOAuth2',
+
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -130,5 +139,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# OAuth
 
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
+SOCIAL_AUTH_GITHUB_KEY = 'ec6ca140f7f8664c8034'
+SOCIAL_AUTH_GITHUB_SECRET = 'a99da20bc8b54671d04cad1b82d7772a4edc6d95'
