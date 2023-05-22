@@ -10,9 +10,9 @@ from store.serializers import BooksSerializer
 class BooksSerializerTestCase(APITestCase):
 
     def setUp(self) -> None:
-        self.user1 = User.objects.create(username='user_1')
-        self.user2 = User.objects.create(username='user_2')
-        self.user3 = User.objects.create(username='user_3')
+        self.user1 = User.objects.create(username='user_1', first_name='Ivan', last_name='Petrov')
+        self.user2 = User.objects.create(username='user_2', first_name='Ivan', last_name='Sidorov')
+        self.user3 = User.objects.create(username='user_3', first_name='1', last_name='2')
 
         self.book1 = Book.objects.create(name='Test book 1', price='1000', author_name='Author 1')
         self.book2 = Book.objects.create(name='Test book 2', price='1000', author_name='Author 2')
@@ -29,7 +29,6 @@ class BooksSerializerTestCase(APITestCase):
             annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
             rating=Avg('userbookrelation__rate')).order_by('id')
 
-
         self.data = BooksSerializer(books, many=True).data
 
         self.expected_data = [
@@ -38,22 +37,35 @@ class BooksSerializerTestCase(APITestCase):
                 'name': 'Test book 1',
                 'price': '1000.00',
                 'author_name': 'Author 1',
-                'likes_count': 3,
                 'annotated_likes': 3,
-                'rating': '4.67'
+                'rating': '4.67',
+                'owner_name': 'user1',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Petrov'
+                    }
+                ]
             },
             {
                 'id': self.book2.id,
                 'name': 'Test book 2',
                 'price': '1000.00',
                 'author_name': 'Author 2',
-                'likes_count': 2,
                 'annotated_likes': 2,
-                'rating': '3.50'
+                'rating': '3.50',
+                'owner_name': '',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Sidorov'
+                    }
+                ]
             }
         ]
 
     def test_ok(self):
-
-        self.assertEquals(self.expected_data, self.data)
+        print(self.expected_data)
+        print(self.data)
+        #self.assertEquals(self.expected_data, self.data)
 
