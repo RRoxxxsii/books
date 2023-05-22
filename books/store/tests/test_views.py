@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.db.models import Count, Case, When, Avg
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -21,7 +22,13 @@ class BooksAPITestCase(APITestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_get_page_data(self):
-        response_data = self.client.get(self.url).data
+        response = self.client.get(self.url)
+        books = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate')).order_by('id')
+        serialized_data = BooksSerializer(books, many=True).data
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(serialized_data, response.data)
 
 
 class FilterBookAPITestCase(APITestCase):
@@ -29,18 +36,20 @@ class FilterBookAPITestCase(APITestCase):
     def setUp(self) -> None:
         self.book1 = Book.objects.create(name='Test book 1', price='900', author_name='author 1')
         self.book2 = Book.objects.create(name='Test book 2', price='100', author_name='author 5')
-        self.book3 = Book.objects.create(name='Test book author 1', price='1010', author_name='author 2')
+        self.book3 = Book.objects.create(name='Test book author 1', price='100', author_name='author 2')
 
         self.url = reverse('book-list')
 
     def test_get_filter_search(self):
-        response = self.client.get(self.url, data={'search': 'author 1'})
-        serialized_data = BooksSerializer([self.book1, self.book3], many=True).data
+        books = Book.objects.filter(id__in=[self.book2.id, self.book3.id]).annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate')).order_by('id')
+        response = self.client.get(self.url, data={'price': '100'})
+        serialized_data = BooksSerializer(books, many=True).data
 
         self.assertEquals(response.status_code, 200)
-        print(response.data)
-        print(serialized_data)
         self.assertEquals(serialized_data, response.data)
+
 
     # def test_get_filter_order_price(self):
     #     response = self.client.get(self.url, data={'ordering': 'price'})
