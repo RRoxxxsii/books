@@ -21,13 +21,17 @@ class BooksSerializerTestCase(APITestCase):
         UserBookRelation.objects.create(user=self.user2, book=self.book1, like=True, rate=5)
         UserBookRelation.objects.create(user=self.user3, book=self.book1, like=True, rate=4)
 
+        user_book_3 = UserBookRelation.objects.create(user=self.user3, book=self.book1, like=True)
+        user_book_3.rate = 4
+        user_book_3.save()
+
         UserBookRelation.objects.create(user=self.user1, book=self.book2, like=True, rate=3)
         UserBookRelation.objects.create(user=self.user2, book=self.book2, like=True, rate=4)
         UserBookRelation.objects.create(user=self.user3, book=self.book1, like=False)
 
         books = Book.objects.all().annotate(
             annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
-            rating=Avg('userbookrelation__rate')).order_by('id')
+            rate=Avg('userbookrelation__rate')).order_by('id')
 
         self.data = BooksSerializer(books, many=True).data
 
